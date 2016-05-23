@@ -81,11 +81,11 @@ class windowClass(wx.Frame):
 
     def Rotar_90(self,event):
         #Comprueba si la hay una imagen abierta
-        imagen_Abierta = self.Comprobacion()
-        if (imagen_Abierta):
-            item = self.GetMenuBar().FindItemById(event.GetId())
-            text = item.GetHelp()
-            print text
+        item = self.GetMenuBar().FindItemById(event.GetId())
+        text = item.GetHelp()
+        #print text
+        imagen_abierta = self.Comprobacion(text)
+        if(imagen_abierta == True):
             filepath = self.photoTxt.GetValue()
             #Rotaremos la imagen con opencv
             #Abrimos la Imagen y obtenemos el tamano
@@ -107,21 +107,21 @@ class windowClass(wx.Frame):
                 NewW = self.PhotoMaxSize * W / H
             img = img.Scale(400,400)
             if(text=="Rota la Primera Imagen +90 Grados"):
-                #Le decimos que ira hacia al primer imagrCtrl
+                    #Le decimos que ira hacia al primer imagrCtrl
                 self.imageCtrl.SetBitmap(wx.BitmapFromImage(img))
                 self.Refresh()
             else:
-                #Le decimos que ira hacia el segundo imagrCtrl_2
+                    #Le decimos que ira hacia el segundo imagrCtrl_2
                 self.imageCtrl_2.SetBitmap(wx.BitmapFromImage(img))
                 self.Refresh()
 
 
     def Rotar_M_90(self,event):
-        imagen_Abierta= self.Comprobacion()
+
+        item = self.GetMenuBar().FindItemById(event.GetId())
+        text = item.GetHelp()
+        imagen_Abierta= self.Comprobacion(text)
         if(imagen_Abierta):
-            item = self.GetMenuBar().FindItemById(event.GetId())
-            text = item.GetHelp()
-            print text
             filepath = self.photoTxt.GetValue()
             #Rotaremos la imagen con opencv
             #Abrimos la Imagen y obtenemos el tamano
@@ -273,13 +273,24 @@ class windowClass(wx.Frame):
             self.imageCtrl_2.SetBitmap(wx.BitmapFromImage(img))
             self.Refresh()
             #self.Fit(self)
+    #Comprobacion de Rotacion si imagen esta abierta
 
-    def Comprobacion(self):
-        if ( self.name_Photo_1!= "No Definido" ):
-            return True
+    def Comprobacion(self,event):
+        print event
+        if( event == "Rota la Primera Imagen +90 Grados"):
+            if ( self.name_Photo_1!= "No Definido" ):
+                return True
+            else:
+                wx.MessageBox("Por Favor Abra una Imagen", "Error" ,wx.OK | wx.ICON_INFORMATION)
+                return False
         else:
-            wx.MessageBox("Por Favor Abra una Imagen", "Error" ,wx.OK | wx.ICON_INFORMATION)
-            return False
+            if(self.name_Photo_2 != "No Definido"):
+                 return True
+            else:
+                wx.MessageBox("Por Favor Abra una Imagen", "Error" ,wx.OK | wx.ICON_INFORMATION)
+                return False
+
+
     def Comprobacion_Doble(self):
         if (self.name_Photo_1 != "No Definido" and self.name_Photo_2 != "No Definido"):
             return True
