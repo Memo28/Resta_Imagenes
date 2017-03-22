@@ -1,13 +1,17 @@
 import wx
 import cv2
 import numpy 
+import argparse
 import numpy as np 
 import Tkinter 
 import FileDialog
 from matplotlib import pyplot as plt
 
 #Inicializamos la ventana y agregamos el panel como hijo
+
 class PhotoCtrl(wx.App):
+    refPt = []
+    cropping = False
     def __init__(self, redirect=False, filename=None, *args, **kwargs):
         super(PhotoCtrl, self).__init__(*args, **kwargs) 
         wx.App.__init__(self, redirect, filename)
@@ -58,6 +62,10 @@ class PhotoCtrl(wx.App):
         #Rotacion Libre Imagen 2
         browseBtn_rlibre_2=wx.Button(self.panel,label="Rotacion Libre Imagen 2",size=(200,30))
         browseBtn_rlibre_2.Bind(wx.EVT_BUTTON, self.onFreeRo)
+        #Ajuste de Imagen
+        label_ajustar = wx.StaticText(self.panel,label="Ajuste de Imagenes",size=(200,30))
+        browseBtn_ajImg_1=wx.Button(self.panel,label="Imagen 1",size=(200,30))
+        browseBtn_ajImg_1.Bind(wx.EVT_BUTTON, self.onCrop)
         #Etiqueta Histograma
         label_histogram = wx.StaticText(self.panel,label="Histograma",size=(200,20),style=wx.ALIGN_CENTER)
         #Generar Hiograma
@@ -86,7 +94,9 @@ class PhotoCtrl(wx.App):
         self.sizer.Add(browseBtn_rlibre_1,0,wx.ALL,5)
         self.sizer.Add(browseBtn_rlibre_2,0,wx.ALL,5)
         self.sizer.Add(label_histogram, 0 , wx.ALL, 5) 
-        self.sizer.Add(browseBtn_Histo,0,wx.ALL,5)     
+        self.sizer.Add(browseBtn_Histo,0,wx.ALL,5)
+        self.sizer.Add(label_ajustar,0,wx.ALL,5)
+        self.sizer.Add(browseBtn_ajImg_1,0,wx.ALL,5)     
         self.mainSizer.Add(self.sizer, 0, wx.ALL, 5)
         self.panel.SetSizer(self.mainSizer)
         self.mainSizer.Fit(self.frame)
@@ -278,6 +288,51 @@ class PhotoCtrl(wx.App):
         plt.xlim([0, 256])
         plt.show()
 
+#---------------------------------------------------------
+
+    #Aujuste de Imagen
+    def onCrop(self,event):
+        filepath = self.name_Photo_1
+        #Ponemos la Imagen 1 en modo de espera para recibir los clicks
+        global image
+        global clone
+        #Redimencionamos la imagen original a 600 px, creamos una copia para trabajar
+        #sobre ella y la desplegamos en una nueva ventana
+        image = cv2.imread(filepath)
+        r = 600.0 / image.shape[1]
+        dim = (600, int(image.shape[0] * r))
+        image = cv2.resize(image, dim, interpolation = cv2.INTER_AREA)
+        clone = image.copy()
+        cv2.imshow("imagen",image)
+        cv2.namedWindow("imagen")
+        cv2.resizeWindow("imagen", 600,600)
+        cv2.setMouseCallback("imagen",self.get_clicks)
+    
+    def get_clicks(self,event,x,y,flags,param):
+        filepath = self.name_Photo_1
+        global refPt
+        global cropping
+        #Detectamos los clicks y guardamos en rftPt
+        if event == cv2.EVENT_LBUTTONDOWN:
+            refPt = [(x, y)]
+            cropping = True
+        elif event == cv2.EVENT_LBUTTONUP:
+            refPt.append((x, y))
+            cropping = False
+            # Dibujamos un rectangulo sobre la seleccion
+            cv2.rectangle(image, refPt[0], refPt[1], (0, 255, 0), 2)
+            cv2.imshow("imagen", image)
+            print (refPt)
+            roi = clone[refPt[0][1]:refPt[1][1],refPt[0][0]:refPt[1][0]]
+            #Guardamos el recorte y abrimos la imagen en la interfaz principal
+            cv2.imwrite(filepath,roi)
+            img = wx.Image(filepath, wx.BITMAP_TYPE_ANY)
+            self.imageCtrl.SetBitmap(wx.BitmapFromImage(img))
+            self.panel.Refresh()
+            self.mainSizer.Fit(self.frame)
+            cv2.destroyAllWindows()
+
+        
 #------------------------------------------------------------------------
 #Main      
 if __name__ == '__main__':
