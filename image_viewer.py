@@ -146,7 +146,7 @@ class PhotoCtrl(wx.App):
         else:
             NewH = self.PhotoMaxSize
             NewW = self.PhotoMaxSize * W / H
-        img = img.Scale(500,500)
+        img = img.Scale(600,600)
         if(id_b=="Rotar 90 Derecha Imagen 1"):
             #Le decimos que ira hacia al primer imagrCtrl
             self.imageCtrl.SetBitmap(wx.BitmapFromImage(img))
@@ -182,7 +182,7 @@ class PhotoCtrl(wx.App):
         else:
             NewH = self.PhotoMaxSize
             NewW = self.PhotoMaxSize * W / H
-        img = img.Scale(500,500)
+        img = img.Scale(600,600)
         if(id_b=="Rotar 90 Izquierda Imagen 1"):
             #Le decimos que ira hacia al primer imagrCtrl
             self.imageCtrl.SetBitmap(wx.BitmapFromImage(img))
@@ -224,7 +224,7 @@ class PhotoCtrl(wx.App):
         else:
             NewH = self.PhotoMaxSize
             NewW = self.PhotoMaxSize * W / H
-        img = img.Scale(500,500)
+        img = img.Scale(600,600)
         if(id_b=="Rotacion Libre Imagen 1"):
             #Le decimos que ira hacia al primer imagrCtrl
             self.imageCtrl.SetBitmap(wx.BitmapFromImage(img))
@@ -254,7 +254,7 @@ class PhotoCtrl(wx.App):
         else:
             NewH = self.PhotoMaxSize
             NewW = self.PhotoMaxSize * W / H
-        img = img.Scale(500,500)
+        img = img.Scale(600,600)
         if(id_i=="Abrir Primera Radiografia"):
             self.name_Photo_1 = filepath
             #Le decimos que ira hacia al primer imagrCtrl
@@ -267,26 +267,6 @@ class PhotoCtrl(wx.App):
             self.imageCtrl_2.SetBitmap(wx.BitmapFromImage(img))
             self.panel.Refresh()
             self.mainSizer.Fit(self.frame)
-
-#---------------------------------------------------------
-    #Generacion del HistoGrama
-    def onHistograma(self,event):
-        im_1 = self.name_Photo_1
-        im_2 = self.name_Photo_2
-        print im_1
-        print im_2
-        photo_1 = cv2.imread(im_1)
-        photo_2 = cv2.imread(im_2)
-        d1 = cv2.absdiff(photo_2,photo_1)
-        cv2.imshow('resultado',d1)
-        hist = cv2.calcHist([d1], [0], None, [256], [0, 256])
-        plt.figure()
-        plt.title("Grayscale Histogram")
-        plt.xlabel("Bins")
-        plt.ylabel("# of Pixels")
-        plt.plot(hist)
-        plt.xlim([0, 256])
-        plt.show()
 
 #---------------------------------------------------------
 
@@ -325,13 +305,44 @@ class PhotoCtrl(wx.App):
             print (refPt)
             roi = clone[refPt[0][1]:refPt[1][1],refPt[0][0]:refPt[1][0]]
             #Guardamos el recorte y abrimos la imagen en la interfaz principal
+            r = 600.0 / roi.shape[1]
+            dim = (600, int(roi.shape[0] * r))
+            roi = cv2.resize(roi, dim, interpolation = cv2.INTER_AREA)
             cv2.imwrite(filepath,roi)
             img = wx.Image(filepath, wx.BITMAP_TYPE_ANY)
+            print img.GetSize()
             self.imageCtrl.SetBitmap(wx.BitmapFromImage(img))
             self.panel.Refresh()
             self.mainSizer.Fit(self.frame)
             cv2.destroyAllWindows()
 
+#---------------------------------------------------------
+    #Generacion del HistoGrama
+    def onHistograma(self,event):
+        im_1 = self.name_Photo_1
+        im_2 = self.name_Photo_2
+        photo_1 = cv2.imread(im_1)
+        photo_2 = cv2.imread(im_2)
+        
+        print photo_1.shape[0], photo_1.shape[1]
+        col = photo_1.shape[0]
+        fil = photo_1.shape[1]
+
+        r = fil / photo_1.shape[0]
+        dim = (int(photo_1.shape[1] * r), col)
+        photo_2 = cv2.resize(photo_2, dim, interpolation = cv2.INTER_AREA)
+        
+        print photo_2.shape[0], photo_2.shape[1]
+        d1 = cv2.absdiff(photo_1,photo_2)
+        cv2.imshow("Diferencia",d1)
+        hist = cv2.calcHist([d1], [0], None, [256], [0, 256])
+        plt.figure()
+        plt.title("Grayscale Histogram")
+        plt.xlabel("Bins")
+        plt.ylabel("# of Pixels")
+        plt.plot(hist)
+        plt.xlim([0, 256])
+        plt.show()
         
 #------------------------------------------------------------------------
 #Main      
