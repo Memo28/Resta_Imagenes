@@ -68,9 +68,12 @@ class PhotoCtrl(wx.App):
         browseBtn_ajImg_1.Bind(wx.EVT_BUTTON, self.onCrop)
         #Etiqueta Histograma
         label_histogram = wx.StaticText(self.panel,label="Histograma",size=(200,20),style=wx.ALIGN_CENTER)
-        #Generar Hiograma
-        browseBtn_Histo = wx.Button(self.panel, label='Generar Histograma',size=(200,30))
+        #Generar Hiograma A-B
+        browseBtn_Histo = wx.Button(self.panel, label='Generar Histograma A-B',size=(200,30))
         browseBtn_Histo.Bind(wx.EVT_BUTTON, self.onHistograma)
+        #Generar Hiograma B-A
+        browseBtn_Histo_2 = wx.Button(self.panel, label='Generar Histograma B-A',size=(200,30))
+        browseBtn_Histo_2.Bind(wx.EVT_BUTTON, self.onHistograma)
 
         self.mainSizer = wx.BoxSizer(wx.HORIZONTAL)
         self.sizer = wx.BoxSizer(wx.VERTICAL)
@@ -95,6 +98,7 @@ class PhotoCtrl(wx.App):
         self.sizer.Add(browseBtn_rlibre_2,0,wx.ALL,5)
         self.sizer.Add(label_histogram, 0 , wx.ALL, 5) 
         self.sizer.Add(browseBtn_Histo,0,wx.ALL,5)
+        self.sizer.Add(browseBtn_Histo_2,0,wx.ALL,5)
         self.sizer.Add(label_ajustar,0,wx.ALL,5)
         self.sizer.Add(browseBtn_ajImg_1,0,wx.ALL,5)     
         self.mainSizer.Add(self.sizer, 0, wx.ALL, 5)
@@ -321,6 +325,8 @@ class PhotoCtrl(wx.App):
     def onHistograma(self,event):
         im_1 = self.name_Photo_1
         im_2 = self.name_Photo_2
+        id_b= event.GetEventObject().GetLabel()
+        print id_b
         photo_1 = cv2.imread(im_1)
         photo_2 = cv2.imread(im_2)
         
@@ -331,9 +337,14 @@ class PhotoCtrl(wx.App):
         r = fil / photo_1.shape[0]
         dim = (int(photo_1.shape[1] * r), col)
         photo_2 = cv2.resize(photo_2, dim, interpolation = cv2.INTER_AREA)
-        
+        #Detectamos cual resta se hara
         print photo_2.shape[0], photo_2.shape[1]
-        d1 = cv2.absdiff(photo_1,photo_2)
+        if(id_b=="Generar Histograma A-B"):
+            d1 = cv2.absdiff(photo_1,photo_2)
+        else:
+            d1 = cv2.absdiff(photo_2,photo_1) 
+
+        #d1 = cv2.absdiff(photo_1,photo_2)
         cv2.imshow("Diferencia",d1)
         hist = cv2.calcHist([d1], [0], None, [256], [0, 256])
         plt.figure()
