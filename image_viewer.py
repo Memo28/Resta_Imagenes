@@ -1,11 +1,15 @@
+
 import wx
+import wx, wx.html
 import cv2
 import numpy 
 import argparse
 import numpy as np 
 import Tkinter 
 import FileDialog
+from decimal import *
 from matplotlib import pyplot as plt
+
 
 #Inicializamos la ventana y agregamos el panel como hijo
 
@@ -344,8 +348,29 @@ class PhotoCtrl(wx.App):
         else:
             d1 = cv2.absdiff(photo_2,photo_1) 
 
-        #d1 = cv2.absdiff(photo_1,photo_2)
-        cv2.imshow("Diferencia",d1)
+        gray_image =cv2.cvtColor(d1,cv2.COLOR_BGR2GRAY) 
+        gray_image_2 =cv2.cvtColor(photo_1,cv2.COLOR_BGR2GRAY) 
+
+        val_prom_res = 0;
+        val_prom_ini = 0;
+
+        #Calculamos el valor promedio de escala de grises para la imagen resultante
+        for i in range(gray_image.shape[0]):
+            for j in xrange(gray_image.shape[1]):
+                val_prom_res = val_prom_res + gray_image[i][j]
+
+
+        #Calculamos el valor promedio de escala de grises para la imagen inicia
+        for i in range(gray_image_2.shape[0]):
+            for j in xrange(gray_image_2.shape[1]):
+                val_prom_ini = val_prom_ini + gray_image_2[i][j]
+
+    
+        ganancia_osea = (Decimal(val_prom_res)/Decimal(val_prom_ini))*100
+
+        self.new = NewWindow(parent=None, id=-1, g_osea=ganancia_osea,inicial=val_prom_ini,resultante=val_prom_res)
+        self.new.Show()
+        plt.imshow(d1)
         hist = cv2.calcHist([d1], [0], None, [256], [0, 256])
         plt.figure()
         plt.title("Grayscale Histogram")
@@ -354,7 +379,28 @@ class PhotoCtrl(wx.App):
         plt.plot(hist)
         plt.xlim([0, 256])
         plt.show()
-        
+
+
+
+class NewWindow(wx.Frame):
+
+    def __init__(self,parent,id,g_osea,inicial,resultante):
+        wx.Frame.__init__(self, parent, id, 'New Window', size=(450,200))
+        wx.Frame.CenterOnScreen(self)
+        panel = wx.Panel(self) 
+        box = wx.BoxSizer(wx.VERTICAL) 
+        lbl = wx.StaticText(panel,-1,style = wx.ALIGN_CENTER) 
+            
+        txt1 = "GANANCIA OSEA = "+str(g_osea)+"\n"
+        txt2= "Valor promedio de los tonos de girs de la imagen resultante = " + str(resultante)+"\n"
+        txt3 = "Valor promedio de los tonos de girs de la imagen inicial = "+ str(inicial) 
+        txt = txt1 + txt2 + txt3 
+
+        font = wx.Font(10, wx.ROMAN, wx.ITALIC, wx.NORMAL) 
+        lbl.SetFont(font) 
+        lbl.SetLabel(txt) 
+
+
 #------------------------------------------------------------------------
 #Main      
 if __name__ == '__main__':
