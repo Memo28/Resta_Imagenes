@@ -7,6 +7,8 @@ import argparse
 import numpy as np 
 import Tkinter 
 import FileDialog
+import tkFileDialog
+import tkMessageBox
 from decimal import *
 from matplotlib import pyplot as plt
 
@@ -70,6 +72,9 @@ class PhotoCtrl(wx.App):
         label_ajustar = wx.StaticText(self.panel,label="Ajuste de Imagenes",size=(200,30))
         browseBtn_ajImg_1=wx.Button(self.panel,label="Imagen 1",size=(200,30))
         browseBtn_ajImg_1.Bind(wx.EVT_BUTTON, self.onCrop)
+
+        browseBtn_ajImg_2=wx.Button(self.panel,label="Imagen 2",size=(200,30))
+        browseBtn_ajImg_2.Bind(wx.EVT_BUTTON, self.onCrop)
         #Etiqueta Histograma
         label_histogram = wx.StaticText(self.panel,label="Histograma",size=(200,20),style=wx.ALIGN_CENTER)
         #Generar Hiograma A-B
@@ -104,7 +109,8 @@ class PhotoCtrl(wx.App):
         self.sizer.Add(browseBtn_Histo,0,wx.ALL,5)
         self.sizer.Add(browseBtn_Histo_2,0,wx.ALL,5)
         self.sizer.Add(label_ajustar,0,wx.ALL,5)
-        self.sizer.Add(browseBtn_ajImg_1,0,wx.ALL,5)     
+        self.sizer.Add(browseBtn_ajImg_1,0,wx.ALL,5)
+        self.sizer.Add(browseBtn_ajImg_2,0,wx.ALL,5)     
         self.mainSizer.Add(self.sizer, 0, wx.ALL, 5)
         self.panel.SetSizer(self.mainSizer)
         self.mainSizer.Fit(self.frame)
@@ -365,7 +371,6 @@ class PhotoCtrl(wx.App):
             for j in xrange(gray_image_2.shape[1]):
                 val_prom_ini = val_prom_ini + gray_image_2[i][j]
 
-    
         ganancia_osea = (Decimal(val_prom_res)/Decimal(val_prom_ini))*100
 
         self.new = NewWindow(parent=None, id=-1, g_osea=ganancia_osea,inicial=val_prom_ini,resultante=val_prom_res)
@@ -401,8 +406,31 @@ class NewWindow(wx.Frame):
         lbl.SetLabel(txt) 
 
 
+class MyWindowsInfo(wx.Frame):
+
+    def __init__(self):
+        wx.Frame.__init__(self, None, -1, "Ingresar", size=(300, 250))
+        self.panel = wx.Panel(self,-1)
+        wx.StaticText(self.panel, -1, "Sistema Medico para el Analisis de Radiografias", pos=(20, 12))
+        wx.StaticText(self.panel, -1, "Guillermo Vara De Gante", pos=(70, 48))
+        wx.StaticText(self.panel, -1, "Dr. Barbara Emma Sanchez Rinza", pos=(50, 64))
+        wx.StaticText(self.panel, -1, "Dr. Alberto Jaramillo Nunez", pos=(60, 80))
+        wx.StaticText(self.panel, -1, "Version 1.0 ", pos=(100, 94))
+        button=wx.Button(self.panel,label="Ingresar",pos=(90, 150), size = (100,50))
+        self.Bind(wx.EVT_BUTTON, self.newwindow, button)
+
+    def newwindow(self, event):
+        app = PhotoCtrl()
+        self.Close()
+        app.MainLoop()
+
+
 #------------------------------------------------------------------------
 #Main      
 if __name__ == '__main__':
-    app = PhotoCtrl()
+    app = wx.App(False)
+    frame = MyWindowsInfo()
+    frame.Show(True)
+    frame.Centre()
+
     app.MainLoop()
